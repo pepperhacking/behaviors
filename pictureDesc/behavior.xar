@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ChoregrapheProject xmlns="http://www.aldebaran-robotics.com/schema/choregraphe/project.xsd" xar_version="3">
+    <Box name="root" id="-1" localization="8" tooltip="Root box of Choregraphe&apos;s behavior. Highest level possible." x="0" y="0">
+        <bitmap>media/images/box/root.png</bitmap>
+        <script language="4">
+            <content>
+                <![CDATA[]]>
+</content>
+        </script>
+        <Input name="onLoad" type="1" type_size="1" nature="0" inner="1" tooltip="Signal sent when diagram is loaded." id="1" />
+        <Input name="onStart" type="1" type_size="1" nature="2" inner="0" tooltip="Box behavior starts when a signal is received on this input." id="2" />
+        <Input name="onStop" type="1" type_size="1" nature="3" inner="0" tooltip="Box behavior stops when a signal is received on this input." id="3" />
+        <Output name="onStopped" type="1" type_size="1" nature="1" inner="0" tooltip="Signal sent when box behavior is finished." id="4" />
+        <Timeline enable="0">
+            <BehaviorLayer name="behavior_layer1">
+                <BehaviorKeyframe name="keyframe1" index="1">
+                    <Diagram>
+                        <Box name="Python Script" id="1" localization="8" tooltip="This box contains a basic python script and can be used to create any python script box you would like.&#x0A;&#x0A;To edit its script, double-click on it." x="521" y="80">
+                            <bitmap>media/images/box/box-python-script.png</bitmap>
+                            <script language="4">
+                                <content>
+                                    <![CDATA[import requests
+from requests.auth import HTTPBasicAuth
+import json
+class MyClass(GeneratedClass):
+    def __init__(self):
+        GeneratedClass.__init__(self)
+        self.memory = ALProxy('ALMemory')
+
+
+    def onLoad(self):
+        #put initialization code here
+        pass
+
+    def onUnload(self):
+        #put clean-up code here
+        pass
+
+    def onInput_onStart(self):
+        #self.onStopped() #activate the output of the box
+        endpoint = 'https://api.imagga.com/v1'
+        api_key = 'acc_c2012cacdfb235a'
+        api_secret = '6737e90f193914236e8afba5c15265c1'
+
+        auth = HTTPBasicAuth(api_key, api_secret)
+
+        # Open the desired file
+        with open('/home/nao/recordings/cameras/imageTest.jpg', 'r') as image_file:
+            filename = image_file.name
+
+            # Upload the multipart-encoded image with a POST
+            # request to the /content endpoint
+            content_response = requests.post('%s/content' % endpoint, auth=auth, files={filename: image_file})
+            self.logger.info(str(content_response))
+            # Example /content response:
+            # {'status': 'success',
+            #  'uploaded': [{'id': '8aa6e7f083c628407895eb55320ac5ad',
+            #                'filename': 'example_image.jpg'}]}
+            uploaded_files = content_response.json()['uploaded']
+            self.logger.info(str(uploaded_files))
+            # Get the content id of the uploaded file
+            content_id = uploaded_files[0]['id']
+
+        # Using the content id and the content parameter,
+        # make a GET request to the /tagging endpoint to get
+        # image tags
+        tagging_query = {'content': content_id}
+        tagging_response = requests.get(
+            '%s/tagging' % endpoint,
+            auth=auth,
+            params=tagging_query)
+
+        results = tagging_response.json()
+
+        print results['results'][0]['tags'][0]['tag']
+
+        reco=results['results'][0]['tags'][1]['tag']
+        reco1=results['results'][0]['tags'][0]['tag']
+        reco2=results['results'][0]['tags'][2]['tag']
+
+        self.memory.insertData("PepperBeats/PictureDesc", str("I see some " + reco + " and some " + reco1 + " and maybe some " + reco2))
+        self.onInput_onStop()
+
+
+
+    def onInput_onStop(self):
+        self.onUnload() #it is recommended to reuse the clean-up as the box is stopped
+        self.onStopped() #activate the output of the box]]>
+</content>
+                            </script>
+                            <Input name="onLoad" type="1" type_size="1" nature="0" inner="1" tooltip="Signal sent when diagram is loaded." id="1" />
+                            <Input name="onStart" type="1" type_size="1" nature="2" inner="0" tooltip="Box behavior starts when a signal is received on this input." id="2" />
+                            <Input name="onStop" type="1" type_size="1" nature="3" inner="0" tooltip="Box behavior stops when a signal is received on this input." id="3" />
+                            <Output name="onStopped" type="1" type_size="1" nature="1" inner="0" tooltip="Signal sent when box behavior is finished." id="4" />
+                        </Box>
+                        <Box name="Take Picture" id="3" localization="8" tooltip="Take a picture with one of the cameras camera and store it in his memory in ~/recordings/cameras. The image format is JPG.&#x0A;&#x0A;V1.1.0&#x0A;" x="274" y="78">
+                            <bitmap>media/images/box/interaction/picture.png</bitmap>
+                            <script language="4">
+                                <content>
+                                    <![CDATA[import time
+
+class MyClass(GeneratedClass):
+    def __init__(self):
+        GeneratedClass.__init__(self, False)
+        self.resolutionMap = {
+            '160 x 120': 0,
+            '320 x 240': 1,
+            '640 x 480': 2,
+            '1280 x 960': 3
+        }
+        self.cameraMap = {
+            'Top': 0,
+            'Bottom': 1
+        }
+
+        self.recordFolder = "/home/nao/recordings/cameras/"
+
+    def onLoad(self):
+        self.bIsRunning = False
+        try:
+            self.photoCapture = ALProxy( "ALPhotoCapture" )
+        except Exception as e:
+            self.photoCapture = None
+            self.logger.error(e)
+
+    def onUnload(self):
+        pass
+
+    def onInput_onStart(self):
+        if( self.bIsRunning ):
+            return
+        self.bIsRunning = True
+        resolution = self.resolutionMap[self.getParameter("Resolution")]
+        cameraID = self.cameraMap[self.getParameter("Camera")]
+        fileName = self.getParameter("File Name")
+        if self.photoCapture:
+            self.photoCapture.setResolution(resolution)
+            self.photoCapture.setCameraID(cameraID)
+            self.photoCapture.setPictureFormat("jpg")
+            self.photoCapture.takePicture( self.recordFolder, fileName )
+        self.bIsRunning = False
+        self.onStopped()]]>
+</content>
+                            </script>
+                            <Input name="onLoad" type="1" type_size="1" nature="0" inner="1" tooltip="Signal sent when diagram is loaded." id="1" />
+                            <Input name="onStart" type="1" type_size="1" nature="2" inner="0" tooltip="Box behavior starts when a signal is received on this input." id="2" />
+                            <Output name="onStopped" type="1" type_size="1" nature="1" inner="0" tooltip="Signal sent when box behavior is finished." id="3" />
+                            <Parameter name="Resolution" inherits_from_parent="0" content_type="3" value="320 x 240" default_value="640 x 480" custom_choice="0" tooltip="Image resolution." id="4">
+                                <Choice value="160 x 120" />
+                                <Choice value="320 x 240" />
+                                <Choice value="640 x 480" />
+                                <Choice value="1280 x 960" />
+                            </Parameter>
+                            <Parameter name="File Name" inherits_from_parent="0" content_type="3" value="imageTest.jpg" default_value="image" custom_choice="0" tooltip="Name of the file without its extension." id="5" />
+                            <Parameter name="Camera" inherits_from_parent="0" content_type="3" value="Top" default_value="Top" custom_choice="0" tooltip="Enables to select the camera (Top or Bottom) that will take the picture." id="6">
+                                <Choice value="Top" />
+                                <Choice value="Bottom" />
+                            </Parameter>
+                        </Box>
+                        <Link inputowner="1" indexofinput="2" outputowner="3" indexofoutput="3" />
+                        <Link inputowner="3" indexofinput="2" outputowner="0" indexofoutput="2" />
+                        <Link inputowner="0" indexofinput="4" outputowner="1" indexofoutput="4" />
+                    </Diagram>
+                </BehaviorKeyframe>
+            </BehaviorLayer>
+        </Timeline>
+    </Box>
+</ChoregrapheProject>
