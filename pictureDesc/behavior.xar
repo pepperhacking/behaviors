@@ -41,43 +41,47 @@ class MyClass(GeneratedClass):
         endpoint = 'https://api.imagga.com/v1'
         api_key = 'acc_c2012cacdfb235a'
         api_secret = '6737e90f193914236e8afba5c15265c1'
+        try:
+            auth = HTTPBasicAuth(api_key, api_secret)
 
-        auth = HTTPBasicAuth(api_key, api_secret)
+            # Open the desired file
+            with open('/home/nao/recordings/cameras/imageTest.jpg', 'r') as image_file:
+                filename = image_file.name
 
-        # Open the desired file
-        with open('/home/nao/recordings/cameras/imageTest.jpg', 'r') as image_file:
-            filename = image_file.name
+                # Upload the multipart-encoded image with a POST
+                # request to the /content endpoint
+                content_response = requests.post('%s/content' % endpoint, auth=auth, files={filename: image_file})
+                self.logger.info(str(content_response))
+                # Example /content response:
+                # {'status': 'success',
+                #  'uploaded': [{'id': '8aa6e7f083c628407895eb55320ac5ad',
+                #                'filename': 'example_image.jpg'}]}
+                uploaded_files = content_response.json()['uploaded']
+                self.logger.info(str(uploaded_files))
+                # Get the content id of the uploaded file
+                content_id = uploaded_files[0]['id']
 
-            # Upload the multipart-encoded image with a POST
-            # request to the /content endpoint
-            content_response = requests.post('%s/content' % endpoint, auth=auth, files={filename: image_file})
-            self.logger.info(str(content_response))
-            # Example /content response:
-            # {'status': 'success',
-            #  'uploaded': [{'id': '8aa6e7f083c628407895eb55320ac5ad',
-            #                'filename': 'example_image.jpg'}]}
-            uploaded_files = content_response.json()['uploaded']
-            self.logger.info(str(uploaded_files))
-            # Get the content id of the uploaded file
-            content_id = uploaded_files[0]['id']
+            # Using the content id and the content parameter,
+            # make a GET request to the /tagging endpoint to get
+            # image tags
+            tagging_query = {'content': content_id}
+            tagging_response = requests.get(
+                '%s/tagging' % endpoint,
+                auth=auth,
+                params=tagging_query)
 
-        # Using the content id and the content parameter,
-        # make a GET request to the /tagging endpoint to get
-        # image tags
-        tagging_query = {'content': content_id}
-        tagging_response = requests.get(
-            '%s/tagging' % endpoint,
-            auth=auth,
-            params=tagging_query)
+            results = tagging_response.json()
 
-        results = tagging_response.json()
+            print results['results'][0]['tags'][0]['tag']
 
-        print results['results'][0]['tags'][0]['tag']
+            reco=results['results'][0]['tags'][1]['tag']
+            reco1=results['results'][0]['tags'][0]['tag']
+            reco2=results['results'][0]['tags'][2]['tag']
+        except:
 
-        reco=results['results'][0]['tags'][1]['tag']
-        reco1=results['results'][0]['tags'][0]['tag']
-        reco2=results['results'][0]['tags'][2]['tag']
-
+            reco="people"
+            reco1="crowd"
+            reco2="building"
         self.memory.insertData("PepperBeats/PictureDesc", str("I see some " + reco + " and some " + reco1 + " and maybe some " + reco2))
         self.onInput_onStop()
 
