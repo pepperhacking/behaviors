@@ -17,19 +17,5 @@
    <autonomous/>
    <permissions/>
   </behaviorContent>
-  <behaviorContent path="behavior_long">
-   <nature>interactive</nature>
-   <triggerSentences/>
-   <loadingResponses/>
-   <autonomous/>
-   <permissions/>
-  </behaviorContent>
-  <behaviorContent path="behavior_middle">
-   <nature>interactive</nature>
-   <triggerSentences/>
-   <loadingResponses/>
-   <autonomous/>
-   <permissions/>
-  </behaviorContent>
  </contents>
 </package>

@@ -3,8 +3,8 @@
     <Manifest src="manifest.xml" />
     <BehaviorDescriptions>
         <BehaviorDescription name="behavior" src="behavior_short" xar="behavior.xar" />
-        <BehaviorDescription name="behavior" src="behavior_long" xar="behavior.xar" />
         <BehaviorDescription name="behavior" src="behavior_middle" xar="behavior.xar" />
+        <BehaviorDescription name="behavior" src="behavior_long" xar="behavior.xar" />
     </BehaviorDescriptions>
     <Dialogs />
     <Resources />
