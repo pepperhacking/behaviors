@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<package version="0.0.1" uuid="randomstring-50e175">
+<package uuid="randomstring-50e175" version="0.0.1">
  <names>
   <name lang="en_US">randomString</name>
  </names>
@@ -10,9 +10,22 @@
   <language>en_US</language>
  </descriptionLanguages>
  <contents>
-  <behaviorContent path=".">
-   <userRequestable/>
-   <nature></nature>
+  <behaviorContent path="behavior_short">
+   <nature>interactive</nature>
+   <triggerSentences/>
+   <loadingResponses/>
+   <autonomous/>
+   <permissions/>
+  </behaviorContent>
+  <behaviorContent path="behavior_long">
+   <nature>interactive</nature>
+   <triggerSentences/>
+   <loadingResponses/>
+   <autonomous/>
+   <permissions/>
+  </behaviorContent>
+  <behaviorContent path="behavior_middle">
+   <nature>interactive</nature>
    <triggerSentences/>
    <loadingResponses/>
    <autonomous/>
